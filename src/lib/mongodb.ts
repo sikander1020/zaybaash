@@ -36,11 +36,13 @@ export async function connectDB() {
   if (!cache.promise) {
     cache.promise = mongoose.connect(MONGODB_URI, { 
       bufferCommands: false,
-      serverSelectionTimeoutMS: 10000,
-      connectTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 5000,   // Fail fast on cold start
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 30000,
       retryWrites: true,
-      maxPoolSize: 5,
+      maxPoolSize: 10,                  // Render keeps process alive, larger pool is safe
+      minPoolSize: 2,                   // Keep 2 connections warm at all times
+      heartbeatFrequencyMS: 10000,      // Detect dead connections quickly
     }).catch((err) => {
       cache.lastError = err;
       cache.promise = null;

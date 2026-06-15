@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   },
 };
 
-// ISR: cached at CDN edge, revalidated every 5 min
-export const revalidate = 300;
+// force-dynamic: Render is a persistent Node.js server, not a Vercel CDN edge.
+export const dynamic = 'force-dynamic';
 
 export default async function SignatureDressPage() {
   const products = await getStorefrontProducts();

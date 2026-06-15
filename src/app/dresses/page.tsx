@@ -25,8 +25,9 @@ export const metadata: Metadata = {
   },
 };
 
-// ISR: page is statically generated and cached at CDN edge, revalidated every 5 min
-export const revalidate = 300;
+// force-dynamic: Render is a persistent Node.js server, not a Vercel CDN edge.
+// storefrontData.ts already caches in-memory for 5 min via unstable_cache.
+export const dynamic = 'force-dynamic';
 
 
 export default async function DressesPage({ searchParams }: { searchParams?: { category?: string; sort?: string } }) {

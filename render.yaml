@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: zaybaash
+    runtime: node
+    region: singapore  # closest to Pakistan for lowest latency
+    plan: starter       # change to 'free' if on free plan (note: free plan spins down)
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start:render
+    healthCheckPath: /api/products?limit=1
+    autoDeploy: true
+
+    # Environment variables — also set these in Render dashboard
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: HOSTNAME
+        value: 0.0.0.0
+      # ↓ Set secret values in Render Dashboard → Environment
+      - key: MONGODB_URI
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
+      - key: ADMIN_TOKEN_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: DISCORD_WEBHOOK_URL
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      - key: NEXT_PUBLIC_FB_PIXEL_ID
+        sync: false
+      - key: FB_CAPI_ACCESS_TOKEN
+        sync: false
