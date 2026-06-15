@@ -77,7 +77,10 @@ function normalizeProduct(p: {
   const resolvedId = typeof p.productId === 'string' && p.productId.trim().length > 0
     ? p.productId.trim()
     : String(p._id ?? '').trim();
-  const rawImages = Array.isArray(p.images) && p.images.length > 0 ? p.images : [FALLBACK_IMAGE];
+  const rawImages = Array.isArray(p.images) && p.images.length > 0 
+    ? p.images.filter(u => Boolean(u) && !u.startsWith('data:image')) 
+    : [FALLBACK_IMAGE];
+  if (rawImages.length === 0) rawImages.push(FALLBACK_IMAGE);
   const images = rawImages.map((u) => optimiseCloudinaryUrl(u, 'card'));
   const colors = Array.isArray(p.colors) && p.colors.length > 0 ? p.colors : [{ name: 'Default', hex: '#E6B7A9' }];
   const sanitizedSizes = sanitizeSizes(p.sizes);

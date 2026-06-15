@@ -113,13 +113,15 @@ function normalizeProduct(p: {
     : String(p._id ?? '').trim();
 
   const imageSeed = `${resolvedId}|${p.name}|${p.category}`;
-  const safeImages = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  const safeImages = Array.isArray(p.images) 
+    ? p.images.filter(u => Boolean(u) && !u.startsWith('data:image')) 
+    : [];
   
   // If frontImageUrl or backImageUrl exist but aren't in images array, add them
-  if (p.frontImageUrl && !safeImages.includes(p.frontImageUrl)) {
+  if (p.frontImageUrl && !p.frontImageUrl.startsWith('data:image') && !safeImages.includes(p.frontImageUrl)) {
     safeImages.unshift(p.frontImageUrl);
   }
-  if (p.backImageUrl && !safeImages.includes(p.backImageUrl)) {
+  if (p.backImageUrl && !p.backImageUrl.startsWith('data:image') && !safeImages.includes(p.backImageUrl)) {
     safeImages.push(p.backImageUrl);
   }
   const sizeChartRows = sanitizeSizeChartRows(p.sizeChartRows);
@@ -138,9 +140,9 @@ function normalizeProduct(p: {
     price: Number(p.price) || 0,
     originalPrice: (p.originalPrice && p.originalPrice > 0) ? p.originalPrice : undefined,
     images,
-    frontImageUrl: typeof p.frontImageUrl === 'string' ? p.frontImageUrl : '',
-    backImageUrl: typeof p.backImageUrl === 'string' ? p.backImageUrl : '',
-    sizeChartImageUrl: typeof p.sizeChartImageUrl === 'string' ? p.sizeChartImageUrl : '',
+    frontImageUrl: typeof p.frontImageUrl === 'string' && !p.frontImageUrl.startsWith('data:image') ? p.frontImageUrl : '',
+    backImageUrl: typeof p.backImageUrl === 'string' && !p.backImageUrl.startsWith('data:image') ? p.backImageUrl : '',
+    sizeChartImageUrl: typeof p.sizeChartImageUrl === 'string' && !p.sizeChartImageUrl.startsWith('data:image') ? p.sizeChartImageUrl : '',
     videoUrl: typeof p.videoUrl === 'string' ? p.videoUrl : '',
     model3dUrl: typeof p.model3dUrl === 'string' ? p.model3dUrl : '',
     model3dStatus: p.model3dStatus ?? 'none',
@@ -185,7 +187,7 @@ function normalizeCategory(c: {
     name: c.name,
     slug: c.slug,
     description: c.description || '',
-    image: c.image || FALLBACK_CATEGORY_IMAGE,
+    image: typeof c.image === 'string' && !c.image.startsWith('data:image') ? c.image : FALLBACK_CATEGORY_IMAGE,
     isActive: c.isActive !== false,
     sortOrder: Number(c.sortOrder) || 0,
     count,
@@ -225,7 +227,10 @@ const getRawCategories = unstable_cache(
       const key = categoryKey(String(row._id ?? ''));
       if (!key) continue;
       const existing = countMap.get(key);
-      const fallback = row.firstImage || row.altImage || FALLBACK_CATEGORY_IMAGE;
+      let fallback = row.firstImage || row.altImage || FALLBACK_CATEGORY_IMAGE;
+      if (typeof fallback === 'string' && fallback.startsWith('data:image')) {
+        fallback = FALLBACK_CATEGORY_IMAGE;
+      }
       countMap.set(key, { 
         count: (existing?.count ?? 0) + (Number(row.count) || 0),
         fallbackImage: existing?.fallbackImage || fallback
