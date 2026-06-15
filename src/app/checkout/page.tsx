@@ -30,6 +30,13 @@ export default function CheckoutPage() {
     ttqInitiateCheckout(
       items.map((i) => ({ id: i.product.id, name: i.product.name, price: i.product.price, quantity: i.quantity }))
     );
+    fbq.event('InitiateCheckout', {
+      content_ids: items.map(i => i.product.id),
+      content_type: 'product',
+      value: total(),
+      currency: 'PKR',
+      num_items: items.reduce((acc, i) => acc + i.quantity, 0),
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const bankName = process.env.NEXT_PUBLIC_BANK_NAME ?? 'JazzCash';

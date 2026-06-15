@@ -13,6 +13,7 @@ import { useToast } from '@/components/layout/ToastProvider';
 import ProductQuickViewModal from '@/components/storefront/ProductQuickViewModal';
 import type { StoreCategory, StoreProduct } from '@/types/storefront';
 import { ttqSearch } from '@/lib/tiktok';
+import * as fbq from '@/lib/fpixel';
 
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
@@ -100,6 +101,15 @@ function ProductCard({ product, index, onQuickView }: { product: StoreProduct; i
                   title: wasWishlisted ? 'Removed from wishlist' : 'Saved to wishlist',
                   message: product.name,
                 });
+                if (!wasWishlisted) {
+                  fbq.event('AddToWishlist', {
+                    content_name: product.name,
+                    content_ids: [product.id],
+                    content_type: 'product',
+                    value: product.price,
+                    currency: 'PKR',
+                  });
+                }
               }}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 ${wishlisted ? 'bg-rose-gold text-white' : 'bg-white/80 text-brown hover:bg-rose-gold hover:text-white'}`}
             >
@@ -113,6 +123,13 @@ function ProductCard({ product, index, onQuickView }: { product: StoreProduct; i
                 if (adding || product.outOfStock) return;
                 setAdding(true);
                 addItem(product, product.sizes[1] || product.sizes[0], product.colors[0]);
+                fbq.event('AddToCart', {
+                  content_name: product.name,
+                  content_ids: [product.id],
+                  content_type: 'product',
+                  value: product.price,
+                  currency: 'PKR',
+                });
                 toast({ type: 'success', title: 'Added to bag', message: product.name, hasCheckout: true });
                 window.setTimeout(() => setAdding(false), 500);
               }}

@@ -15,6 +15,7 @@ import type { StoreProduct } from '@/types/storefront';
 import { StockBadge } from '@/components/storefront/StockBadge';
 import { AttributeCard } from '@/components/storefront/AttributeCard';
 import { ttqViewContent, ttqAddToWishlist, ttqIdentify } from '@/lib/tiktok';
+import * as fbq from '@/lib/fpixel';
 
 const ModelViewer3D = dynamic(() => import('@/components/storefront/ModelViewer3D'), {
   ssr: false,
@@ -277,6 +278,15 @@ export default function ProductPage() {
 
     // TikTok ViewContent
     ttqViewContent({ id: product.id, name: product.name, price: product.price });
+
+    // Meta ViewContent
+    fbq.event('ViewContent', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
   }, [product?.id, product?.name, product?.category, product?.price, selectedSize, selectedColor.name]);
 
   const recentlyViewed = useMemo(() => {
@@ -353,6 +363,16 @@ export default function ProductPage() {
       size: selectedSizeSafe,
       color: selectedColorSafe.name,
     });
+    
+    // Meta AddToCart
+    fbq.event('AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
+
     toast({ type: 'success', title: 'Added to bag', message: product.name, hasCheckout: true });
     window.setTimeout(() => setAddingToCart(false), 500);
   };
@@ -370,6 +390,22 @@ export default function ProductPage() {
       size: selectedSizeSafe,
       color: selectedColorSafe.name,
     });
+
+    // Meta InitiateCheckout / AddToCart shortcut
+    fbq.event('AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
+    fbq.event('InitiateCheckout', {
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
+
     toast({ type: 'success', title: 'Proceeding to checkout', message: product.name });
     router.push('/checkout');
   };
@@ -380,6 +416,13 @@ export default function ProductPage() {
     // Fire TikTok AddToWishlist only when adding (not removing)
     if (!wasWishlisted) {
       ttqAddToWishlist({ id: product.id, name: product.name, price: product.price });
+      fbq.event('AddToWishlist', {
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price,
+        currency: 'PKR',
+      });
     }
     toast({
       type: 'success',

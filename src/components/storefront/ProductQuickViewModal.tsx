@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useWishlistStore } from '@/store/useWishlistStore';
 import { useToast } from '@/components/layout/ToastProvider';
 import type { StoreProduct } from '@/types/storefront';
+import * as fbq from '@/lib/fpixel';
 
 type ProductQuickViewModalProps = {
   product: StoreProduct | null;
@@ -32,6 +33,17 @@ function ProductQuickViewModalBody({ product, onClose }: { product: StoreProduct
   const toggleCart = useCartStore((s) => s.toggleCart);
   const { toggle, isWishlisted } = useWishlistStore();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Fire Meta ViewContent on quick view open
+    fbq.event('ViewContent', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
+  }, [product]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -59,6 +71,13 @@ function ProductQuickViewModalBody({ product, onClose }: { product: StoreProduct
 
     setAdding(true);
     addItem(product, selectedSize, selectedColor);
+    fbq.event('AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'PKR',
+    });
     toast({ type: 'success', title: 'Added to bag', message: product.name });
     toggleCart();
     window.setTimeout(() => setAdding(false), 500);
@@ -67,6 +86,15 @@ function ProductQuickViewModalBody({ product, onClose }: { product: StoreProduct
   const handleWishlist = () => {
     const wasWishlisted = isWishlisted(product.id);
     toggle(product.id);
+    if (!wasWishlisted) {
+      fbq.event('AddToWishlist', {
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price,
+        currency: 'PKR',
+      });
+    }
     toast({
       type: 'success',
       title: wasWishlisted ? 'Removed from wishlist' : 'Saved to wishlist',
