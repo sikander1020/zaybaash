@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import Product from '@/models/Product';
 import Category from '@/models/Category';
 import type { StoreCategory, StoreProduct } from '@/types/storefront';
+import { optimiseCloudinaryUrl } from '@/lib/imageUrl';
 
 const BLOCKED_SIZES = new Set(['XS', 'XL', 'EXTRA SMALL', 'EXTRA LARGE']);
 
@@ -124,9 +125,9 @@ function normalizeProduct(p: {
   const sizeChartRows = sanitizeSizeChartRows(p.sizeChartRows);
   const sizes = sanitizeSizes(p.sizes);
   const images = safeImages.length >= 2
-    ? safeImages
+    ? safeImages.map((u) => optimiseCloudinaryUrl(u, 'card'))
     : safeImages.length === 1
-      ? [safeImages[0], ...fallbackProductImages(imageSeed).slice(0, 1)]
+      ? [optimiseCloudinaryUrl(safeImages[0], 'card'), ...fallbackProductImages(imageSeed).slice(0, 1)]
       : fallbackProductImages(imageSeed);
 
   return {

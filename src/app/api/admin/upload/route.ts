@@ -47,7 +47,20 @@ export async function POST(req: NextRequest) {
     
     const uploaded = await cloudinary.uploader.upload(dataUrl, {
       folder: 'zaybaash/admin-uploads',
-      resource_type: 'auto',
+      resource_type: resourceType as 'auto' | 'image' | 'video',
+      // Auto-optimise on upload: convert to WebP, cap at 1200px, auto quality
+      ...(resourceType === 'image' && {
+        transformation: [
+          { width: 1200, crop: 'limit' },   // never upscale, cap at 1200px wide
+          { quality: 'auto:good' },           // Cloudinary smart compression
+          { fetch_format: 'webp' },           // force WebP output
+        ],
+        eager: [
+          // Pre-generate a 800px thumbnail for product cards
+          { width: 800, crop: 'limit', quality: 'auto:good', fetch_format: 'webp' },
+        ],
+        eager_async: true,
+      }),
     });
 
     return NextResponse.json({ 

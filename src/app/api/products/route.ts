@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import Product from '@/models/Product';
+import { optimiseCloudinaryUrl } from '@/lib/imageUrl';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&q=80';
 const BLOCKED_SIZES = new Set(['XS', 'XL', 'EXTRA SMALL', 'EXTRA LARGE']);
@@ -76,7 +77,8 @@ function normalizeProduct(p: {
   const resolvedId = typeof p.productId === 'string' && p.productId.trim().length > 0
     ? p.productId.trim()
     : String(p._id ?? '').trim();
-  const images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [FALLBACK_IMAGE];
+  const rawImages = Array.isArray(p.images) && p.images.length > 0 ? p.images : [FALLBACK_IMAGE];
+  const images = rawImages.map((u) => optimiseCloudinaryUrl(u, 'card'));
   const colors = Array.isArray(p.colors) && p.colors.length > 0 ? p.colors : [{ name: 'Default', hex: '#E6B7A9' }];
   const sanitizedSizes = sanitizeSizes(p.sizes);
   const sizes = sanitizedSizes.length > 0 ? sanitizedSizes : ['S', 'M', 'L'];
